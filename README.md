@@ -19,7 +19,7 @@ Berikut adalah alur bagaimana program ini mendeteksi kantuk:
 4. **Prediksi Model** <br> Model deep learning akan mengklasifikasikan kondisi menguap atau normal.
 4. **Validasi dan Thresholding** <br>
     * Jika nilai EAR berada di bawah batas wajar (0.20) selama beberapa *frame* berturut-turut, program mengonfirmasi bahwa pengemudi sedang memejamkan mata (mengantuk atau *microsleep*).
-    * Jika probabilitas prediksi model menguap lebih dari 65%, program mengonfirmasi bahwa pengemudi sedang menguap.
+    * Jika probabilitas prediksi model menguap lebih dari 50%, program mengonfirmasi bahwa pengemudi sedang menguap.
 5. **Trigger Alarm (Peringatan Suara)** Sistem akan secara otomatis membunyikan alarm peringatan melalui modul yang ada untuk membangunkan pengemudi agar kembali waspada.
 
 ## Flow Diagram (Simplified)

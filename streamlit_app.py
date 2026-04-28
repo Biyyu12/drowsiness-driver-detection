@@ -7,7 +7,6 @@ import pygame
 import tensorflow as tf
 from tensorflow import keras
 from utils.aspect_ratio_processor import AspectRatioProcessor
-from utils.bbox_processor import BoundingBoxProcessor
 
 st.set_page_config(layout="wide")
 st.title("Driver Drowsiness Detection")
@@ -59,6 +58,12 @@ EAR_THRESH = 0.20
 EYE_PADDING = 5
 MOUTH_PADDING = 10
 
+# Global variables
+frame_count = 0
+confidence = 0.0
+ear = 0.0
+is_yawning = False
+
 # --- PREPROCESSING (SAMA DENGAN TRAINING) ---
 def preprocess_image(img):
     img = cv2.resize(img, (224, 224), interpolation=cv2.INTER_AREA)
@@ -109,12 +114,15 @@ if "microsleep_active" not in st.session_state:
     st.session_state.is_alarm_playing = False
 
 # --- UI ---
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns(3)
 with col1:
     start = st.button("Start Camera")
 with col2:
     stop = st.button("Stop")
+with col3:
+    show_landmarks = st.checkbox("Tampilkan Landmark", value=True)
 
+# --- STREAMLIT DISPLAY ---
 frame_placeholder = st.empty()
 
 if start:
@@ -134,7 +142,6 @@ if st.session_state.get('run_camera', False):
 
         h, w, _ = frame.shape
 
-        bbox_processor = BoundingBoxProcessor(w, h)
         aspect_ratio_processor = AspectRatioProcessor(w, h)
 
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -160,18 +167,17 @@ if st.session_state.get('run_camera', False):
 
                 annotated = processed_frame.copy()
 
-                if results.multi_face_landmarks:
-                    for face_landmarks in results.multi_face_landmarks:
+                annotated = draw_landmarks_inference(processed_frame, face_landmarks)
 
-                        annotated = draw_landmarks_inference(processed_frame, face_landmarks)
+                input_tensor = annotated / 255.0
+                input_tensor = np.expand_dims(input_tensor, axis=0)
+                if frame_count % 5 == 0:
+                    pred = yawn_model.predict(input_tensor, verbose=0)[0][0]
+                else:
+                    frame_count += 1
 
-                        input_tensor = annotated / 255.0
-                        input_tensor = np.expand_dims(input_tensor, axis=0)
-
-                        pred = yawn_model.predict(input_tensor, verbose=0)[0][0]
-
-                        confidence = float(pred)
-                        is_yawning = confidence > 0.5
+                confidence = float(pred)
+                is_yawning = confidence > 0.5
 
                 # --- Yawning ---
                 if is_yawning:
@@ -230,7 +236,7 @@ if st.session_state.get('run_camera', False):
                     cv2.FONT_HERSHEY_SIMPLEX,1,(0,255,255),2)
 
         # --- STREAMLIT DISPLAY ---
-        if results.multi_face_landmarks:
+        if results.multi_face_landmarks and show_landmarks:
             for face_landmarks in results.multi_face_landmarks:
                 frame = draw_landmarks_inference(frame, face_landmarks)
 

@@ -77,7 +77,7 @@ python app.py
 
 **⚠️ Catatan Penting**
 1. Pastikan webcam aktif
-2. Gunakan Python versi kompatibel (disarankan 3.9–3.10 untuk stabilitas dependency)
+2. Gunakan Python versi kompatibel (disarankan 3.10)
 3. Hindari konflik dependency seperti:
     * protobuf
     * mediapipe
